@@ -2,7 +2,8 @@ import six
 import socket
 import json
 
-class JSONRPCTCPClient:
+
+class JSONRPCTCPClient(object):
     def __init__(self, endpoint):
         self.endpoint = endpoint
         self.id_counter = 0
@@ -10,7 +11,7 @@ class JSONRPCTCPClient:
     def call(self, method, args, expect_reply=False):
         message = self._create_message(method, args)
         reply = self._send_message(message, True)
-        
+
         if expect_reply:
             self._parse_reply(reply)
             return 0
@@ -18,8 +19,8 @@ class JSONRPCTCPClient:
             return 0
 
     def _create_message(self, method, args):
-
-        jdata = {"method": method, "params": args, "unique_id":self._get_uid()}
+        jdata = {"method": method, "params": args,
+                 "unique_id": self._get_uid()}
 
         return json.dumps(jdata)
 

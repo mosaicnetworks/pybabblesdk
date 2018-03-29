@@ -3,12 +3,14 @@ import base64
 from rpc.jsonrpctcpclient import JSONRPCTCPClient
 from rpc.jsonrpctcpserver import JSONRPCTCPServer, Dispatcher
 
+
 class StateMachine(Dispatcher):
 
     def CommitBlock(self, block):
         pass
 
-class BabbleProxy:
+
+class BabbleProxy(object):
 
     def __init__(self, node_address, bind_address, state_machine):
         self.node_address = node_address
@@ -16,7 +18,8 @@ class BabbleProxy:
         self.state_machine = state_machine
 
         self.rpc_client = JSONRPCTCPClient(self.node_address)
-        self.rpc_server = JSONRPCTCPServer(self.bind_address, self.state_machine)
+        self.rpc_server = JSONRPCTCPServer(self.bind_address,
+                                           self.state_machine)
 
     def run(self):
         self.rpc_server.run()

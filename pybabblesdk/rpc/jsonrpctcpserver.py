@@ -2,6 +2,7 @@ import SocketServer
 import threading
 import json
 
+
 class Dispatcher(SocketServer.BaseRequestHandler):
 
     def handle(self):
@@ -13,10 +14,11 @@ class Dispatcher(SocketServer.BaseRequestHandler):
 
         try:
             getattr(self, method)(params)
-        except:
+        except AttributeError:
             print("Unrecognized RPC Method...")
 
-class JSONRPCTCPServer():
+
+class JSONRPCTCPServer(object):
 
     def __init__(self, bind_address, dispatcher):
         self.bind_address = bind_address
