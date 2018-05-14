@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-git clone https://github.com/babbleio/pybabblesdk.git
+git clone https://github.com/mosaicnetworks/babble.git
 cd pybabblesdk
 python setup.py install --user
 ```
