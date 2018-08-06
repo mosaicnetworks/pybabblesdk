@@ -1,12 +1,14 @@
-import six
-import socket
 import json
+import socket
+
+import six
 
 
 class JSONRPCTCPClient(object):
+
     def __init__(self, endpoint):
-        self.endpoint = endpoint
-        self.id_counter = 0
+        self.__endpoint = endpoint  # type: str
+        self.__id_counter = 0  # type: int
 
     def call(self, method, args, expect_reply=False):
         message = self._create_message(method, args)
@@ -19,28 +21,27 @@ class JSONRPCTCPClient(object):
             return 0
 
     def _create_message(self, method, args):
-        jdata = {"method": method, "params": args,
-                 "unique_id": self._get_uid()}
+        json_data = dict(method=method, params=args, unique_id=self._uid().next())
+        return json.dumps(json_data)
 
-        return json.dumps(jdata)
-
-    def _get_uid(self):
-        self.id_counter += 1
-        return self.id_counter
+    def _uid(self):
+        while True:
+            self.__id_counter += 1
+            yield self.__id_counter
 
     def _parse_reply(self, reply):
-        return 0
+        pass
 
     def _send_message(self, message, expect_reply=False):
         if not isinstance(message, six.binary_type):
-            raise TypeError('bytes expected')
+            raise TypeError('Bytes expected')
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        s.connect(self.endpoint)
+        s.connect(self.__endpoint)
 
         s.sendall(message)
         data = s.recv(1024)
+
         s.close()
 
         if expect_reply:
