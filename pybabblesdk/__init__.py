@@ -1,1 +1,1 @@
-from .proxy import *
+from pybabblesdk.proxy import *
