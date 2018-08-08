@@ -1,25 +1,28 @@
-# pybabblesdk
+# PyBabble SDK
+
+An SDK to connect to a Babble node in Python. Compatible with both Python 2 & 3.
 
 ## Installation
 
 ```bash
-git clone https://github.com/mosaicnetworks/babble.git
-cd pybabblesdk
-python setup.py install --user
+pip install pybabblesdk
 ```
 
 ## Examples
 
-An example of how to use the SDK is given in the examples/sendmessage directory.
-To run this application, first start a babble network consisting of four nodes:
+An example of how to use the SDK is given in the `demo/sendmessage` directory.
+To run this application, first change your working directory:
 
 ```bash
-cd examples/sendmessage
+cd demo/sendmessage
+```
+
+Then you will need to run a test network with 4 Babble nodes:
+```bash
 make
 ```
 
-Now run the sendmessage client from the same directory:
-
-```bash
-./sendmessage
+Now you will need to build the Docker image and run the `sendmessage` demo:
+```
+make demo
 ```

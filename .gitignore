@@ -1,1 +1,14 @@
+# Compiled
 *.pyc
+
+# IDE Specific
+.idea/
+
+# Build
+dist
+build
+pybabblesdk.egg-info
+README.txt
+
+# Demo
+demo/sendmessage/conf
