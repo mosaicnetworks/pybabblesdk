@@ -5,10 +5,10 @@ import six
 
 
 class JSONRPCTCPClient(object):
+    __id_counter = 0  # type: int
 
     def __init__(self, endpoint):
-        self.__endpoint = endpoint  # type: str
-        self.__id_counter = 0  # type: int
+        self.__endpoint = endpoint  # type: tuple
 
     def call(self, method, args, expect_reply=False):
         message = self._create_message(method, args)
@@ -21,7 +21,7 @@ class JSONRPCTCPClient(object):
             return 0
 
     def _create_message(self, method, args):
-        json_data = dict(method=method, params=args, unique_id=self._uid().next())
+        json_data = dict(method=method, params=args, unique_id=six.next(self._uid()))
         return json.dumps(json_data)
 
     def _uid(self):
@@ -37,9 +37,11 @@ class JSONRPCTCPClient(object):
             raise TypeError('Bytes expected')
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         s.connect(self.__endpoint)
 
         s.sendall(message)
+
         data = s.recv(1024)
 
         s.close()

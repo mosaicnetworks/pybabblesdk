@@ -14,13 +14,13 @@ docker network create \
   babblenet
 
 # publish node1 proxy address on the host machine
-docker create --name=node1 --publish ${PPADDR}:1338 --net=babblenet --ip=172.77.5.1 mosaicnetworks/babble:0.2.1 run \
+docker create --name=node1 --net=babblenet --ip=172.77.5.1 mosaicnetworks/babble:0.2.1 run \
 --cache_size=50000 \
 --tcp_timeout=200 \
 --heartbeat=10 \
 --node_addr="172.77.5.1:1337" \
     --proxy_addr="172.77.5.1:1338" \
-    --client_addr="172.77.5.254:1339" \
+    --client_addr="172.77.5.5:1339" \
     --service_addr="172.77.5.1:80" \
     --sync_limit=500 \
     --store="inmem"
@@ -40,5 +40,4 @@ do
     --store="inmem"
     docker cp $MPWD/conf/node$i node$i:/.babble
     docker start node$i
-
 done

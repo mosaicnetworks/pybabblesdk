@@ -9,9 +9,9 @@ def read(file_name):
 
 setup(
     name='pybabblesdk',
-    version='0.1.1',
-    description='An SDK for developing babble clients in python.',
-    long_description=read('README.md'),
+    version='0.1.4',
+    description='An SDK for developing Babble clients in python.',
+    long_description=read('README.txt'),
     packages=find_packages(exclude=['tests', 'examples']),
     keywords='babble',
     author='Mosaic Networks',

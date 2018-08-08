@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from __future__ import print_function
 
 import argparse
@@ -25,8 +23,9 @@ class Service(object):
     def run(self):
         try:
             while True:
-                message = raw_input('Your message:\n')
-                self.babble_node.send_tx(message)
+                message = raw_input('Your message: \n')
+                if message:
+                    self.babble_node.send_tx(message)
         except KeyboardInterrupt:
             self.babble_node.shutdown()
             sys.exit(0)
@@ -41,11 +40,11 @@ def app(babble_node_addr, bind_addr):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='simple pybabblesdk example')
-    parser.add_argument('--nodehost', help='node hostname', type=str, default='172.77.5.254', required=True)
-    parser.add_argument('--nodeport', help='node port number', type=int, default=1338, required=True)
-    parser.add_argument('--listenhost', help='app listen hostname', type=str, default='172.77.5.254', required=True)
-    parser.add_argument('--listenport', help='app listen port number', type=int, default=1339, required=True)
+    parser = argparse.ArgumentParser(description='Simple PyBabble SDK Example')
+    parser.add_argument('--nodehost', help='node hostname', type=str, default='172.77.5.1')
+    parser.add_argument('--nodeport', help='node port number', type=int, default=1338)
+    parser.add_argument('--listenhost', help='app listen hostname', type=str, default='172.77.5.5')
+    parser.add_argument('--listenport', help='app listen port number', type=int, default=1339)
     args = parser.parse_args()
 
     babble_node_address = (args.nodehost, args.nodeport)

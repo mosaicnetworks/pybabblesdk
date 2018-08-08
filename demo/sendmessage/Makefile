@@ -12,6 +12,10 @@ conf :
 start:
 	./scripts/run-testnet.sh $(nodes)
 
+# start demo application
+demo:
+	./scripts/demo.sh $(nodes)
+
 # stop testnet
 stop: 
 	./scripts/stop-testnet.sh

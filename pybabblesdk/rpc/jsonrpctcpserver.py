@@ -1,8 +1,11 @@
-from __future__ import print_function
-
 import json
 import threading
-from SocketServer import TCPServer, BaseRequestHandler
+import sys
+
+if sys.version_info < (3, 0):
+    from SocketServer import TCPServer, BaseRequestHandler
+else:
+    from socketserver import TCPServer, BaseRequestHandler
 
 
 class Dispatcher(BaseRequestHandler):
@@ -17,7 +20,7 @@ class Dispatcher(BaseRequestHandler):
         try:
             getattr(self, method)(params)
         except AttributeError:
-            print('Unrecognized RPC Method...')
+            print('Unrecognized RPC Method... ')
 
 
 class JSONRPCTCPServer(object):
