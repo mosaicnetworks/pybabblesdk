@@ -17,3 +17,5 @@ do
         --listenhost 172.77.5.$((${N} + ${i})) \
         --listenport 1339
 done
+
+docker attach demo1
