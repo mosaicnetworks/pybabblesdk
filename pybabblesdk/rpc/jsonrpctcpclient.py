@@ -1,5 +1,6 @@
 import json
 import socket
+import sys
 
 import six
 
@@ -28,6 +29,10 @@ class JSONRPCTCPClient(object):
         :rtype: int
         """
         message = self._create_message(method, args)
+
+        if sys.version_info >= (3, 0):
+            message = bytes(message, encoding='ascii')
+
         reply = self._send_message(message, True)
 
         if expect_reply:
@@ -43,10 +48,15 @@ class JSONRPCTCPClient(object):
         :type method: str
         :param args: list of arguments for the remote procedure
         :type args: list
-        :return: valid json
-        :rtype: json
+        :return: str version of json
+        :rtype: str
         """
-        return json.dumps(dict(method=method, params=args, unique_id=six.next(self._uid())))
+        if sys.version_info >= (3, 0):
+            args = [str(arg, encoding='ascii') for arg in args]
+
+        return json.dumps(dict(method=method,
+                               params=args,
+                               unique_id=six.next(self._uid())))
 
     def _uid(self):
         """ Generates a unique ID for each tx. """
@@ -60,8 +70,8 @@ class JSONRPCTCPClient(object):
     def _send_message(self, message, expect_reply=False):
         """ Send message to Babble node and get reply.
 
-        :param message: json containing the tx details.
-        :type message: json
+        :param message: the tx details.
+        :type message: bytes
         :param expect_reply: whether reply is required
         :type expect_reply: bool
         :return: data

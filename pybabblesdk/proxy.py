@@ -1,5 +1,7 @@
 import base64
+import sys
 
+from pybabblesdk.blockchain.block import Block
 from pybabblesdk.rpc.jsonrpctcpclient import JSONRPCTCPClient
 from pybabblesdk.rpc.jsonrpctcpserver import JSONRPCTCPServer, Dispatcher
 
@@ -11,15 +13,16 @@ class StateMachine(Dispatcher):
         """ Describes what to do with the block received from Babble node.
 
         :param block: data sent from the babble node
-        :type block: json
+        :type block: dict
         """
-        self.commit_block(block)
+        block_obj = Block(block=block)  # type: Block
+        self.commit_block(block_obj)
 
     def commit_block(self, block):
         """ Describes what to do with the block received from Babble node.
 
         :param block: data sent from the babble node
-        :type block: json
+        :type block: Block
         """
         pass
 
@@ -48,7 +51,10 @@ class BabbleProxy(object):
 
     def send_tx(self, tx):
         """ Send a transaction to the babble node. """
-        tx_b64 = base64.b64encode(tx)
+        if sys.version_info < (3, 0):
+            tx_b64 = base64.b64encode(tx)
+        else:
+            tx_b64 = base64.b64encode(tx.encode('ascii'))
         self.__rpc_client.call("Babble.SubmitTx", [tx_b64], expect_reply=True)
 
     def shutdown(self):
