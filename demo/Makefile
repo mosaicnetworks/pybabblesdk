@@ -4,7 +4,7 @@ txs = 10
 up: conf start
 
 # generate keys and peers.json file
-conf : 
+conf:
 	rm -rf conf
 	./scripts/build-conf.sh $(nodes)
 

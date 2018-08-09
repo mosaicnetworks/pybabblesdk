@@ -8,10 +8,9 @@ import pybabblesdk
 
 
 class StateMachine(pybabblesdk.StateMachine):
-
     def commit_block(self, block):
         msg = '\033[F\r\033[92m' + 'Received block:\n'
-        msg += json.dumps(block, indent=4, sort_keys=True) + '\033[0m\n'
+        msg += json.dumps(block.to_dict(), indent=4, sort_keys=True) + '\033[0m\n'
         msg += 'Your message:'
         print(msg)
 
@@ -34,7 +33,6 @@ class Service(object):
 def app(babble_node_addr, bind_addr):
     babble_node = pybabblesdk.BabbleProxy(babble_node_addr, bind_addr, StateMachine)
     service = Service(babble_node)
-
     babble_node.run()
     service.run()
 
