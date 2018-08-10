@@ -9,21 +9,17 @@ from pybabblesdk.rpc.jsonrpctcpserver import JSONRPCTCPServer, Dispatcher
 class StateMachine(Dispatcher):
     """ Abstract class to be extended or overridden by app developer. """
 
+    # noinspection PyPep8Naming
     def CommitBlock(self, block):
         """ Describes what to do with the block received from Babble node.
 
         :param block: data sent from the babble node
         :type block: dict
         """
-        block_obj = Block(block=block)  # type: Block
-        self.commit_block(block_obj)
+
+        self.commit_block(Block(block=block))
 
     def commit_block(self, block):
-        """ Describes what to do with the block received from Babble node.
-
-        :param block: data sent from the babble node
-        :type block: Block
-        """
         pass
 
 
@@ -33,9 +29,9 @@ class BabbleProxy(object):
         """ Proxy to build babble clients in python.
 
         :param node_address: a tuple representing the socket of the node
-        :type node_address: tuple(ip:str, port:int)
+        :type node_address: tuple
         :param bind_address: a tuple representing the socket where the application is listening
-        :type bind_address: tuple(ip:str, port:int)
+        :type bind_address: tuple
         :param state_machine: a class describing the app
         :type: Dispatcher
         """
@@ -51,10 +47,9 @@ class BabbleProxy(object):
 
     def send_tx(self, tx):
         """ Send a transaction to the babble node. """
-        if sys.version_info < (3, 0):
-            tx_b64 = base64.b64encode(tx)
-        else:
-            tx_b64 = base64.b64encode(tx.encode('ascii'))
+        if sys.version_info >= (3, 0):
+            tx = tx.encode('ascii')
+        tx_b64 = base64.b64encode(tx)
         self.__rpc_client.call("Babble.SubmitTx", [tx_b64], expect_reply=True)
 
     def shutdown(self):

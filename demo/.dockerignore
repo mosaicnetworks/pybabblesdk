@@ -1,0 +1,6 @@
+.dockerignore
+Dockerfile
+scripts
+conf
+Makefile
+
