@@ -1,15 +1,52 @@
 from __future__ import print_function
 
 import argparse
+import json
+import sys
 
-import demoproject.settings as settings
-from pybabblesdk import BabbleProxy
-from sendmessage.service import Service
-from sendmessage.state import State
+from pybabblesdk import BabbleProxy, State
+
+
+class StateMachine(object, State):
+    # The interval to check for new blocks in Queue
+    __timeout = 0.5
+
+    def __init__(self):
+        _ = super(StateMachine, self).__init__()
+
+    # Handles logic of parsing a block (REQUIRED)
+    def commit_block(self, block):
+        msg = '\033[F\r\033[92m' + 'Received block:\n'
+        msg += json.dumps(block.to_dict(), indent=4, sort_keys=True) + '\033[0m\n'
+        msg += 'Your message:'
+        print(msg)
+
+
+class Service(object):
+    def __init__(self, node):
+        self.babble_node = node
+
+    def run(self):
+        try:
+            while True:
+                message = raw_input('Your message: \n')
+                if message:
+                    self.babble_node.send_tx(message)
+        except KeyboardInterrupt as e:
+            print(e)
+            self.babble_node.shutdown()
+            sys.exit(0)
+
+
+def app(node_address, bind_address):
+    babble_node = BabbleProxy(node_address=node_address, bind_address=bind_address, state=StateMachine())
+    service = Service(babble_node)
+
+    babble_node.run()
+    service.run()
+
 
 if __name__ == '__main__':
-    state = State()
-
     parser = argparse.ArgumentParser(description='Simple PyBabble SDK Example')
     parser.add_argument('--nodehost', help='node hostname', type=str, default='172.77.5.1')
     parser.add_argument('--nodeport', help='node port number', type=int, default=1338)
@@ -18,9 +55,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     babble_node_address = (args.nodehost, args.nodeport)
-    bind_address = (args.listenhost, args.listenport)
+    app_bind_address = (args.listenhost, args.listenport)
 
-    babble_node = BabbleProxy(babble_node_address, bind_address, state_machine=settings.Handler)
-    service = Service(babble_node)
-    babble_node.run()
-    service.run()
+    app(babble_node_address, app_bind_address)
