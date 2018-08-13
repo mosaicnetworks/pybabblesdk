@@ -2,19 +2,15 @@ from __future__ import print_function
 
 import argparse
 import json
-import sys
 
-from pybabblesdk import BabbleProxy, State
+from pybabblesdk import *
 
 
-class StateMachine(object, State):
-    # The interval to check for new blocks in Queue
-    __timeout = 0.5
+class State(AbstractState):
 
     def __init__(self):
-        _ = super(StateMachine, self).__init__()
+        _ = super(State, self).__init__()
 
-    # Handles logic of parsing a block (REQUIRED)
     def commit_block(self, block):
         msg = '\033[F\r\033[92m' + 'Received block:\n'
         msg += json.dumps(block.to_dict(), indent=4, sort_keys=True) + '\033[0m\n'
@@ -22,28 +18,15 @@ class StateMachine(object, State):
         print(msg)
 
 
-class Service(object):
+class Service(AbstractService):
     def __init__(self, node):
-        self.babble_node = node
+        _ = super(Service, self).__init__(node=node)
 
-    def run(self):
-        try:
-            while True:
-                message = raw_input('Your message: \n')
-                if message:
-                    self.babble_node.send_tx(message)
-        except KeyboardInterrupt as e:
-            print(e)
-            self.babble_node.shutdown()
-            sys.exit(0)
-
-
-def app(node_address, bind_address):
-    babble_node = BabbleProxy(node_address=node_address, bind_address=bind_address, state=StateMachine())
-    service = Service(babble_node)
-
-    babble_node.run()
-    service.run()
+    def start(self):
+        while True:
+            message = raw_input('Your message: \n')
+            if message:
+                self.node.send_tx(message)
 
 
 if __name__ == '__main__':
@@ -57,4 +40,9 @@ if __name__ == '__main__':
     babble_node_address = (args.nodehost, args.nodeport)
     app_bind_address = (args.listenhost, args.listenport)
 
-    app(babble_node_address, app_bind_address)
+    app = App(
+        service=Service(Proxy(node_address=babble_node_address, bind_address=app_bind_address)),
+        state=State(),
+        debug=True
+    )
+    app.start()

@@ -7,6 +7,8 @@ if sys.version_info < (3, 0):
 else:
     from socketserver import TCPServer, BaseRequestHandler
 
+__all__ = ['JSONRPCTCPServer', 'Dispatcher']
+
 
 class Dispatcher(BaseRequestHandler):
 
