@@ -12,9 +12,9 @@ class JSONRPCTCPClient(object):
         """ Provides the connection to the Babble node.
 
         :param endpoint: the babble node's ip and port
-        :type endpoint: tuple(ip:str, port:int)
+        :type endpoint: tuple
         """
-        self.__endpoint = endpoint  # type: tuple
+        self.__endpoint = endpoint
 
     def call(self, method, args, expect_reply=False):
         """ Call a function on the Babble node.
@@ -80,13 +80,9 @@ class JSONRPCTCPClient(object):
             raise TypeError('Bytes expected')
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         s.connect(self.__endpoint)
-
         s.sendall(message)
-
         data = s.recv(1024)
-
         s.close()
 
         if expect_reply:

@@ -4,10 +4,17 @@ import argparse
 import json
 import sys
 
-import pybabblesdk
+from pybabblesdk import BabbleProxy, State
 
 
-class StateMachine(pybabblesdk.StateMachine):
+class StateMachine(object, State):
+    # The interval to check for new blocks in Queue
+    __timeout = 0.5
+
+    def __init__(self):
+        _ = super(StateMachine, self).__init__()
+
+    # Handles logic of parsing a block (REQUIRED)
     def commit_block(self, block):
         msg = '\033[F\r\033[92m' + 'Received block:\n'
         msg += json.dumps(block.to_dict(), indent=4, sort_keys=True) + '\033[0m\n'
@@ -16,8 +23,8 @@ class StateMachine(pybabblesdk.StateMachine):
 
 
 class Service(object):
-    def __init__(self, babble_node):
-        self.babble_node = babble_node
+    def __init__(self, node):
+        self.babble_node = node
 
     def run(self):
         try:
@@ -25,14 +32,16 @@ class Service(object):
                 message = raw_input('Your message: \n')
                 if message:
                     self.babble_node.send_tx(message)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
+            print(e)
             self.babble_node.shutdown()
             sys.exit(0)
 
 
-def app(babble_node_addr, bind_addr):
-    babble_node = pybabblesdk.BabbleProxy(babble_node_addr, bind_addr, StateMachine)
+def app(node_address, bind_address):
+    babble_node = BabbleProxy(node_address=node_address, bind_address=bind_address, state=StateMachine())
     service = Service(babble_node)
+
     babble_node.run()
     service.run()
 
@@ -46,6 +55,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     babble_node_address = (args.nodehost, args.nodeport)
-    bind_address = (args.listenhost, args.listenport)
+    app_bind_address = (args.listenhost, args.listenport)
 
-    app(babble_node_address, bind_address)
+    app(babble_node_address, app_bind_address)
