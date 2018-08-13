@@ -4,29 +4,71 @@ import base64
 import sys
 import threading
 import time
-from Queue import Queue
 
 from pybabblesdk.blockchain import Block
 from pybabblesdk.rpc.jsonrpctcpclient import JSONRPCTCPClient
 from pybabblesdk.rpc.jsonrpctcpserver import Dispatcher
 from pybabblesdk.rpc.jsonrpctcpserver import JSONRPCTCPServer
 
-__all__ = ['App', 'Proxy', 'AbstractState', 'AbstractService']
-__version__ = '0.1.11'
+if sys.version_info < (3, 0):
+    # noinspection PyUnresolvedReferences, PyCompatibility
+    from Queue import Queue, Empty
+else:
+    # noinspection PyUnresolvedReferences, PyCompatibility
+    from queue import Queue, Empty
+
+__all__ = ['Proxy', 'AbstractState', 'AbstractService', 'Colours', 'debug_print', 'error', 'success']
+__version__ = '0.2.0'
 
 # Module level variables
 DEBUG = False  # type: bool
 QUEUE = Queue()  # type: Queue
+print_lock = threading.Lock()
 
 
-def _debug_print(message):
+# noinspection PyClassHasNoInit
+class Colours:
+    HEADER = '\033[95m'
+    OK_BLUE = '\033[94m'
+    OK_GREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    END_COLOUR = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def debug_print(message):
     """ Print message if DEBUG is set.
 
     :param message: the debug message to print
     :type: str
     """
     if DEBUG:
-        print(message)
+        with print_lock:
+            print((Colours.HEADER + 'DEBUG: ' + Colours.END_COLOUR + message).strip())
+
+
+def error(message):
+    """ Error message if DEBUG is set.
+
+    :param message: the debug message to print
+    :type: str
+    """
+    if DEBUG:
+        with print_lock:
+            print((Colours.FAIL + 'ERROR: ' + Colours.END_COLOUR + message).strip())
+
+
+def success(message):
+    """ Success message if DEBUG is set.
+
+    :param message: the debug message to print
+    :type: str
+    """
+    if DEBUG:
+        with print_lock:
+            print((Colours.OK_GREEN + 'SUCCESS: ' + Colours.END_COLOUR + message).strip())
 
 
 class BaseHandler(Dispatcher):
@@ -45,6 +87,7 @@ class BaseHandler(Dispatcher):
 class AbstractState(object):
     __shutdown_request = False  # type: bool
     parse_queue_timeout = 0.5  # type: float
+    state = None
 
     def __init__(self):
         """ Describes the complete state of the app and all possible state transitions. """
@@ -54,11 +97,12 @@ class AbstractState(object):
         """ Parses the block queue if thread has not been stopped and queue is not empty. """
         try:
             while not self.__shutdown_request:
-                time.sleep(self.parse_queue_timeout)
-                _debug_print('Checking QUEUE...')
-                while not QUEUE.empty():
-                    _debug_print('Block(s) found.')
-                    self.commit_block(QUEUE.get())
+                try:
+                    block = QUEUE.get(timeout=self.parse_queue_timeout)
+                    debug_print('Block(s) found.')
+                    self.commit_block(block)
+                except Empty:
+                    continue
         finally:
             self.__shutdown_request = False
 
@@ -78,30 +122,12 @@ class AbstractState(object):
 
     def shutdown(self):
         """ Shutdown state threading. """
-        _debug_print('Stopping State thread...')
+        debug_print('Stopping State thread...')
         self.__shutdown_request = True
 
-
-class AbstractService(object):
-    def __init__(self, node):
-        """ Abstract Service
-
-        :param node: a proxy to the Babble node
-        :type node: Proxy
-        """
-        self.__node = node
-
-    def start(self):
-        """ Abstract start method. """
-        raise NotImplementedError('start: Implementation of this method is required.')
-
-    def stop(self):
-        """ Abstract stop method. """
-        raise NotImplementedError('stop: Implementation of this method is required.')
-
     @property
-    def node(self):
-        return self.__node
+    def current_state(self):
+        return self.state
 
 
 class Proxy(object):
@@ -131,16 +157,16 @@ class Proxy(object):
 
     def shutdown(self):
         """ Stop the RPC server. """
-        _debug_print('Stopping JSONRPCTCPServer thread...')
+        debug_print('Stopping JSONRPCTCPServer thread...')
         self.__rpc_server.shutdown()
 
 
-class App(object):
-    def __init__(self, service, state, debug=False):
-        """ Container for Babble applications.
+class AbstractService(object):
+    def __init__(self, node, state, debug=False):
+        """ Abstract Service
 
-        :param service: defines all actions the app can take.
-        :type service: AbstractService
+        :param node: a proxy to the Babble node
+        :type node: Proxy
         :param state: an object describing the state of the app.
         :type state: AbstractState
         :param debug: run app in debug mode
@@ -149,22 +175,35 @@ class App(object):
         global DEBUG
         DEBUG = debug
 
+        self.__node = node
         self.__state = state
-        self.__service = service
+
+    def service(self):
+        raise NotImplementedError('service: Implementation of this method is required.')
 
     def start(self):
         """ Start application. """
         try:
-            self.__service.node.run()
-            self.__state.start()
-            self.__service.start()
-            _debug_print('App started.')
+            self._pre_start()
+            self.service()
         except KeyboardInterrupt:
             self.stop()
 
+    def _pre_start(self):
+        self.__node.run()
+        self.__state.start()
+        debug_print('Service started.')
+
     def stop(self):
         """ Stop application. """
-        self.__service.node.shutdown()
+        self.__node.shutdown()
         self.__state.shutdown()
-        self.__service.stop()
-        _debug_print('App stopped.')
+        debug_print('Service stopped.')
+
+    @property
+    def node(self):
+        return self.__node
+
+    @property
+    def state_machine(self):
+        return self.__state

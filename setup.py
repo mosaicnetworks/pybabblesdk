@@ -9,7 +9,7 @@ def read(file_name):
 
 setup(
     name='pybabblesdk',
-    version='0.1.11',
+    version='0.2.0',
     description='An SDK for developing Babble clients in python.',
     long_description=read('README.md'),
     packages=find_packages(exclude=['tests', 'demo']),

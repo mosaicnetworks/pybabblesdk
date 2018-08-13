@@ -12,24 +12,18 @@ class State(AbstractState):
         _ = super(State, self).__init__()
 
     def commit_block(self, block):
-        msg = '\033[F\r\033[92m' + 'Received block:\n'
-        msg += json.dumps(block.to_dict_raw(), indent=4, sort_keys=True) + '\033[0m\n'
-        msg += 'Your message:'
-        print(msg)
+        success(json.dumps(block.to_dict_raw(), indent=4, sort_keys=True) + '\n Your message: \n'.strip())
 
 
 class Service(AbstractService):
-    def __init__(self, node):
-        _ = super(Service, self).__init__(node=node)
+    def __init__(self, node, state, debug):
+        _ = super(Service, self).__init__(node=node, state=state, debug=debug)
 
-    def start(self):
+    def service(self):
         while True:
             message = raw_input('Your message: \n')
             if message:
                 self.node.send_tx(message)
-
-    def stop(self):
-        pass
 
 
 if __name__ == '__main__':
@@ -43,9 +37,9 @@ if __name__ == '__main__':
     babble_node_address = (args.nodehost, args.nodeport)
     app_bind_address = (args.listenhost, args.listenport)
 
-    app = App(
-        service=Service(Proxy(node_address=babble_node_address, bind_address=app_bind_address)),
+    service = Service(
+        node=Proxy(node_address=babble_node_address, bind_address=app_bind_address),
         state=State(),
         debug=True
     )
-    app.start()
+    service.start()

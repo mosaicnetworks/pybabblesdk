@@ -3,8 +3,10 @@ import sys
 import threading
 
 if sys.version_info < (3, 0):
+    # noinspection PyUnresolvedReferences, PyCompatibility
     from SocketServer import TCPServer, BaseRequestHandler
 else:
+    # noinspection PyUnresolvedReferences, PyCompatibility
     from socketserver import TCPServer, BaseRequestHandler
 
 __all__ = ['JSONRPCTCPServer', 'Dispatcher']
