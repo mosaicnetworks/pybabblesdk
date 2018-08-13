@@ -13,7 +13,7 @@ class State(AbstractState):
 
     def commit_block(self, block):
         msg = '\033[F\r\033[92m' + 'Received block:\n'
-        msg += json.dumps(block.to_dict(), indent=4, sort_keys=True) + '\033[0m\n'
+        msg += json.dumps(block.to_dict_raw(), indent=4, sort_keys=True) + '\033[0m\n'
         msg += 'Your message:'
         print(msg)
 
@@ -27,6 +27,9 @@ class Service(AbstractService):
             message = raw_input('Your message: \n')
             if message:
                 self.node.send_tx(message)
+
+    def stop(self):
+        pass
 
 
 if __name__ == '__main__':

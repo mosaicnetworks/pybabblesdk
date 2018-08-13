@@ -12,7 +12,7 @@ from pybabblesdk.rpc.jsonrpctcpserver import Dispatcher
 from pybabblesdk.rpc.jsonrpctcpserver import JSONRPCTCPServer
 
 __all__ = ['App', 'Proxy', 'AbstractState', 'AbstractService']
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 
 # Module level variables
 DEBUG = False  # type: bool
@@ -68,7 +68,7 @@ class AbstractState(object):
         :param block: block object from Babble node
         :type block: Block
         """
-        raise NotImplementedError("Implementation of method is required.")
+        raise NotImplementedError('commit_block: Implementation of this method is required.')
 
     def start(self):
         """ Run a separate thread to parse the block queue and update state. """
@@ -93,7 +93,11 @@ class AbstractService(object):
 
     def start(self):
         """ Abstract start method. """
-        raise NotImplementedError("Implementation of method is required.")
+        raise NotImplementedError('start: Implementation of this method is required.')
+
+    def stop(self):
+        """ Abstract stop method. """
+        raise NotImplementedError('stop: Implementation of this method is required.')
 
     @property
     def node(self):
@@ -132,15 +136,13 @@ class Proxy(object):
 
 
 class App(object):
-    def __init__(self, service, state, request_handler=BaseHandler, debug=False):
+    def __init__(self, service, state, debug=False):
         """ Container for Babble applications.
 
         :param service: defines all actions the app can take.
         :type service: AbstractService
         :param state: an object describing the state of the app.
         :type state: AbstractState
-        :param request_handler: request handler
-        :type request_handler: BaseHandler
         :param debug: run app in debug mode
         :type debug: bool
         """
@@ -148,22 +150,21 @@ class App(object):
         DEBUG = debug
 
         self.__state = state
-        self.__request_handler = request_handler
         self.__service = service
 
     def start(self):
         """ Start application. """
         try:
             self.__service.node.run()
-            self.__service.start()
             self.__state.start()
-            _debug_print('Node Proxy, Service and State Machine are now running...')
+            self.__service.start()
+            _debug_print('App started.')
         except KeyboardInterrupt:
             self.stop()
 
     def stop(self):
         """ Stop application. """
         self.__service.node.shutdown()
-        # self.__service.stop()
         self.__state.shutdown()
-        _debug_print('Node Proxy, Service and State Machine are now stopped...')
+        self.__service.stop()
+        _debug_print('App stopped.')
