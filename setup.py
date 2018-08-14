@@ -9,7 +9,7 @@ def read(file_name):
 
 setup(
     name='pybabblesdk',
-    version='0.2.0',
+    version='0.2.1',
     description='An SDK for developing Babble clients in python.',
     long_description=read('README.md'),
     packages=find_packages(exclude=['tests', 'demo']),
@@ -18,5 +18,5 @@ setup(
     author_email='kevin@babble.io',
     maintainer='Kevin Jones',
     maintainer_email='kevin@babble.io',
-    url='http://github.com/babbleio/pybabblesdk', install_requires=['six']
+    url='http://github.com/babbleio/pybabblesdk', install_requires=['six', 'requests']
 )

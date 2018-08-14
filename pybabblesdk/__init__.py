@@ -3,7 +3,6 @@ from __future__ import print_function
 import base64
 import sys
 import threading
-import time
 
 from pybabblesdk.blockchain import Block
 from pybabblesdk.rpc.jsonrpctcpclient import JSONRPCTCPClient
@@ -18,7 +17,7 @@ else:
     from queue import Queue, Empty
 
 __all__ = ['Proxy', 'AbstractState', 'AbstractService', 'Colours', 'debug_print', 'error', 'success']
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 # Module level variables
 DEBUG = False  # type: bool
@@ -34,8 +33,6 @@ class Colours:
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     END_COLOUR = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 def debug_print(message):
@@ -87,7 +84,7 @@ class BaseHandler(Dispatcher):
 class AbstractState(object):
     __shutdown_request = False  # type: bool
     parse_queue_timeout = 0.5  # type: float
-    state = None
+    __state = None
 
     def __init__(self):
         """ Describes the complete state of the app and all possible state transitions. """
@@ -126,8 +123,14 @@ class AbstractState(object):
         self.__shutdown_request = True
 
     @property
-    def current_state(self):
-        return self.state
+    def state(self):
+        if type(self.__state) is None:
+            raise TypeError('Must set default type of `state` in class initialisation.')
+        return self.__state
+
+    @state.setter
+    def state(self, value):
+        self.__state = value
 
 
 class Proxy(object):
@@ -160,15 +163,22 @@ class Proxy(object):
         debug_print('Stopping JSONRPCTCPServer thread...')
         self.__rpc_server.shutdown()
 
+    @property
+    def stats(self):
+        return self.__rpc_client.get_stats()
+
+    def get_block(self):
+        return self.__rpc_client.get_block(id)
+
 
 class AbstractService(object):
-    def __init__(self, node, state, debug=False):
+    def __init__(self, node, state_machine, debug=False):
         """ Abstract Service
 
         :param node: a proxy to the Babble node
         :type node: Proxy
-        :param state: an object describing the state of the app.
-        :type state: AbstractState
+        :param state_machine: an object describing the state of the app.
+        :type state_machine: AbstractState
         :param debug: run app in debug mode
         :type debug: bool
         """
@@ -176,7 +186,7 @@ class AbstractService(object):
         DEBUG = debug
 
         self.__node = node
-        self.__state = state
+        self.__state = state_machine
 
     def service(self):
         raise NotImplementedError('service: Implementation of this method is required.')
