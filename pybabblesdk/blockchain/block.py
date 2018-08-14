@@ -1,5 +1,7 @@
 import base64
 
+__all__ = ['Block']
+
 
 class Block(object):
     __slots__ = ['__index', '__round_received', '__state_hash', '__transactions', '__raw_transactions', '__signatures']
@@ -15,13 +17,24 @@ class Block(object):
         except IndexError as e:
             print(e)
 
-    def to_dict(self):
+    def to_dict_raw(self):
         return dict(
             Body=dict(
                 Index=self.index,
                 RoundReceived=self.round_received,
                 StateHash=self.state_hash,
                 Transactions=self.raw_transactions
+            ),
+            Signatures=self.signatures
+        )
+
+    def to_dict(self):
+        return dict(
+            Body=dict(
+                Index=self.index,
+                RoundReceived=self.round_received,
+                StateHash=self.state_hash,
+                Transactions=self.transactions
             ),
             Signatures=self.signatures
         )

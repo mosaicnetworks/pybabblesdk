@@ -4,6 +4,8 @@ import sys
 
 import six
 
+__all__ = ['JSONRPCTCPClient']
+
 
 class JSONRPCTCPClient(object):
     __id_counter = 0  # type: int
