@@ -9,7 +9,6 @@ import pybabblesdk as babble_sdk
 class StateMachine(babble_sdk.AbstractState):
 
     def __init__(self):
-        # initiate parent class
         _ = super(StateMachine, self).__init__()
         # initiate state with default data structure.
         self.state = dict()
@@ -21,11 +20,9 @@ class StateMachine(babble_sdk.AbstractState):
 
 class Service(babble_sdk.AbstractService):
     def __init__(self, node, state_machine, debug):
-        # initiate parent class
         _ = super(Service, self).__init__(node=node, state_machine=state_machine, debug=debug)
 
     def service(self):
-        # service demo
         while True:
             # require user to type a message
             message = raw_input('Type a message to send: ')

@@ -1,8 +1,11 @@
 from __future__ import print_function
 
 import base64
+import json
 import sys
 import threading
+
+import requests
 
 from pybabblesdk.blockchain import Block
 from pybabblesdk.rpc.jsonrpctcpclient import JSONRPCTCPClient
@@ -165,10 +168,13 @@ class Proxy(object):
 
     @property
     def stats(self):
-        return self.__rpc_client.get_stats()
+        """ Returns node stats as python dictionary. """
+        return json.loads((requests.get('http://{ip}:80/stats'.format(ip=self.__node_address[0]))).content)
 
-    def get_block(self):
-        return self.__rpc_client.get_block(id)
+    def get_block(self, block_uid):
+        """ Gets block with unique id as python dictionary. """
+        request = requests.get('http://{ip}:80/block/{uid}'.format(ip=self.__node_address[0], uid=block_uid))
+        return Block(block=json.loads(request.content))
 
 
 class AbstractService(object):

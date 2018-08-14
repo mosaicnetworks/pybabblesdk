@@ -2,7 +2,6 @@ import json
 import socket
 import sys
 
-import requests
 import six
 
 __all__ = ['JSONRPCTCPClient']
@@ -43,15 +42,6 @@ class JSONRPCTCPClient(object):
             return 0
         else:
             return 0
-
-    def get_stats(self):
-        """ Returns node stats as python dictionary. """
-        return json.loads((requests.get('http://{ip}:80/stats'.format(ip=self.__endpoint[0]))).content)
-
-    def get_block(self, block_uid):
-        """ Gets block with unique id as python dictionary. """
-        request = requests.get('http://{ip}:80/block/{uid}'.format(ip=self.__endpoint[0], uid=block_uid))
-        return json.loads(request.content)
 
     def _create_message(self, method, args):
         """ Creates a dictionary with the method, arguments and an id in the format Babble accepts.
