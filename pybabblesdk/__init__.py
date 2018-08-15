@@ -1,5 +1,8 @@
 from __future__ import print_function
 
+__all__ = ['Proxy', 'AbstractState', 'AbstractService', 'Colours']
+__version__ = '0.2.1'
+
 import base64
 import json
 import sys
@@ -19,13 +22,10 @@ else:
     # noinspection PyUnresolvedReferences, PyCompatibility
     from queue import Queue, Empty
 
-__all__ = ['Proxy', 'AbstractState', 'AbstractService', 'Colours', 'debug_print', 'error', 'success']
-__version__ = '0.2.1'
 
 # Module level variables
-DEBUG = False  # type: bool
-QUEUE = Queue()  # type: Queue
-print_lock = threading.Lock()
+_queue = Queue()  # type: Queue
+_print_lock = threading.Lock()
 
 
 # noinspection PyClassHasNoInit
@@ -38,39 +38,6 @@ class Colours:
     END_COLOUR = '\033[0m'
 
 
-def debug_print(message):
-    """ Print message if DEBUG is set.
-
-    :param message: the debug message to print
-    :type: str
-    """
-    if DEBUG:
-        with print_lock:
-            print((Colours.HEADER + 'DEBUG: ' + Colours.END_COLOUR + message).strip())
-
-
-def error(message):
-    """ Error message if DEBUG is set.
-
-    :param message: the debug message to print
-    :type: str
-    """
-    if DEBUG:
-        with print_lock:
-            print((Colours.FAIL + 'ERROR: ' + Colours.END_COLOUR + message).strip())
-
-
-def success(message):
-    """ Success message if DEBUG is set.
-
-    :param message: the debug message to print
-    :type: str
-    """
-    if DEBUG:
-        with print_lock:
-            print((Colours.OK_GREEN + 'SUCCESS: ' + Colours.END_COLOUR + message).strip())
-
-
 class BaseHandler(Dispatcher):
     """ BaseHandler is initialized and destroyed per request back from the Babble node. """
 
@@ -81,7 +48,7 @@ class BaseHandler(Dispatcher):
         :param block: the newly added block with transactions.
         :type block: dict
         """
-        QUEUE.put(Block(block=block))
+        _queue.put(Block(block=block))
 
 
 class AbstractState(object):
@@ -98,8 +65,7 @@ class AbstractState(object):
         try:
             while not self.__shutdown_request:
                 try:
-                    block = QUEUE.get(timeout=self.parse_queue_timeout)
-                    debug_print('Block(s) found.')
+                    block = _queue.get(timeout=self.parse_queue_timeout)
                     self.commit_block(block)
                 except Empty:
                     continue
@@ -122,7 +88,6 @@ class AbstractState(object):
 
     def shutdown(self):
         """ Shutdown state threading. """
-        debug_print('Stopping State thread...')
         self.__shutdown_request = True
 
     @property
@@ -131,13 +96,13 @@ class AbstractState(object):
             raise TypeError('Must set default type of `state` in class initialisation.')
         return self.__state
 
-    @state.setter
-    def state(self, value):
-        self.__state = value
+    if type(__state) is None:
+        @state.setter
+        def state(self, value):
+            self.__state = value
 
 
 class Proxy(object):
-
     def __init__(self, node_address, bind_address):
         """ Proxy to build babble clients in python.
 
@@ -163,7 +128,6 @@ class Proxy(object):
 
     def shutdown(self):
         """ Stop the RPC server. """
-        debug_print('Stopping JSONRPCTCPServer thread...')
         self.__rpc_server.shutdown()
 
     @property
@@ -188,9 +152,7 @@ class AbstractService(object):
         :param debug: run app in debug mode
         :type debug: bool
         """
-        global DEBUG
-        DEBUG = debug
-
+        self.__debug = debug
         self.__node = node
         self.__state = state_machine
 
@@ -208,13 +170,43 @@ class AbstractService(object):
     def _pre_start(self):
         self.__node.run()
         self.__state.start()
-        debug_print('Service started.')
+        self.debug_info('Service started.')
 
     def stop(self):
         """ Stop application. """
         self.__node.shutdown()
         self.__state.shutdown()
-        debug_print('Service stopped.')
+        self.debug_info('Service stopped.')
+
+    def debug_info(self, message):
+        """ Print message if DEBUG is set.
+
+        :param message: the debug info message to print
+        :type: str
+        """
+        if self.__debug:
+            with _print_lock:
+                print((Colours.HEADER + 'INFO: ' + Colours.END_COLOUR + message).strip())
+
+    def debug_error(self, message):
+        """ Error message if DEBUG is set.
+
+        :param message: the debug error message to print
+        :type: str
+        """
+        if self.__debug:
+            with _print_lock:
+                print((Colours.FAIL + 'ERROR: ' + Colours.END_COLOUR + message).strip())
+
+    def debug_success(self, message):
+        """ Success message if DEBUG is set.
+
+        :param message: the debug success message to print
+        :type: str
+        """
+        if self.__debug:
+            with _print_lock:
+                print((Colours.OK_GREEN + 'SUCCESS: ' + Colours.END_COLOUR + message).strip())
 
     @property
     def node(self):

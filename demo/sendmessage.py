@@ -3,10 +3,10 @@ from __future__ import print_function
 import argparse
 import json
 
-import pybabblesdk as babble_sdk
+from pybabblesdk import AbstractState, AbstractService, Proxy
 
 
-class StateMachine(babble_sdk.AbstractState):
+class StateMachine(AbstractState):
 
     def __init__(self):
         _ = super(StateMachine, self).__init__()
@@ -14,11 +14,10 @@ class StateMachine(babble_sdk.AbstractState):
         self.state = dict()
 
     def commit_block(self, block):
-        # print block as received by Babble
-        babble_sdk.success(json.dumps(block.to_dict_raw(), indent=4, sort_keys=True))
+        print(json.dumps(block.to_dict_raw(), indent=4, sort_keys=True))
 
 
-class Service(babble_sdk.AbstractService):
+class Service(AbstractService):
     def __init__(self, node, state_machine, debug):
         _ = super(Service, self).__init__(node=node, state_machine=state_machine, debug=debug)
 
@@ -28,6 +27,7 @@ class Service(babble_sdk.AbstractService):
             message = raw_input('Type a message to send: ')
             # send message to babble node
             if message:
+                self.debug_info('Sending Tx...')
                 self.node.send_tx(message)
 
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     app_bind_address = (args.listenhost, args.listenport)
 
     service = Service(
-        node=babble_sdk.Proxy(node_address=babble_node_address, bind_address=app_bind_address),
+        node=Proxy(node_address=babble_node_address, bind_address=app_bind_address),
         state_machine=StateMachine(),
         debug=True
     )

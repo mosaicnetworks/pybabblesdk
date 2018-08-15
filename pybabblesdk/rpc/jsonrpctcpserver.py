@@ -37,7 +37,8 @@ class JSONRPCTCPServer(object):
 
         :param bind_address: tuple consisting of ip and port where the application is listening
         :type bind_address: tuple(ip:str, port:int)
-        :param dispatcher:
+        :param dispatcher: request handler class
+        :type dispatcher: Dispatcher
         """
         self.bind_address = bind_address  # type: tuple
         self.tcp_server = TCPServer(self.bind_address, dispatcher)  # type: TCPServer

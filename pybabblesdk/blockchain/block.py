@@ -1,4 +1,5 @@
 import base64
+import json
 
 __all__ = ['Block']
 
@@ -7,6 +8,11 @@ class Block(object):
     __slots__ = ['__index', '__round_received', '__state_hash', '__transactions', '__raw_transactions', '__signatures']
 
     def __init__(self, block):
+        """ Block parsed from Babble.
+
+        :param block: valid dict of block passed from Babble.
+        :type block: dict
+        """
         try:
             self.__index = block['Body']['Index']
             self.__round_received = block['Body']['RoundReceived']
@@ -16,6 +22,28 @@ class Block(object):
             self.__signatures = block['Signatures']
         except IndexError as e:
             print(e)
+
+    def __str__(self):
+        return json.dumps(dict(
+            Body=dict(
+                Index=self.index,
+                RoundReceived=self.round_received,
+                StateHash=self.state_hash,
+                Transactions=self.raw_transactions
+            ),
+            Signatures=self.signatures
+        ))
+
+    def __repr__(self):
+        return json.dumps(dict(
+            Body=dict(
+                Index=self.index,
+                RoundReceived=self.round_received,
+                StateHash=self.state_hash,
+                Transactions=self.raw_transactions
+            ),
+            Signatures=self.signatures
+        ))
 
     def to_dict_raw(self):
         return dict(
