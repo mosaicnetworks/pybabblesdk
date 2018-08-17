@@ -1,7 +1,6 @@
 FROM python:2-alpine
 RUN mkdir /demo
 COPY . /demo/
-RUN pip install six
-RUN pip install requests
+RUN pip install pybabblesdk --no-cache
 ENTRYPOINT ["python", "/demo/sendmessage.py"]
 CMD []

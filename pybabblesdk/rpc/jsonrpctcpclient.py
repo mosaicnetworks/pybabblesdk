@@ -58,13 +58,12 @@ class JSONRPCTCPClient(object):
 
         return json.dumps(dict(method=method,
                                params=args,
-                               unique_id=six.next(self._uid())))
+                               unique_id=self._uid()))
 
     def _uid(self):
         """ Generates a unique ID for each tx. """
-        while True:
-            self.__id_counter += 1
-            yield self.__id_counter
+        self.__id_counter += 1
+        return self.__id_counter
 
     def _parse_reply(self, reply):
         pass

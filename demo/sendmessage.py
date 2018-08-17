@@ -27,7 +27,6 @@ class Service(AbstractService):
             message = raw_input('Type a message to send: ')
             # send message to babble node
             if message:
-                self.debug_info('Sending Tx...')
                 self.node.send_tx(message)
 
 
